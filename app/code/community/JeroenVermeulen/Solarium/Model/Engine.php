@@ -29,6 +29,7 @@ class JeroenVermeulen_Solarium_Model_Engine
     const SEARCH_TYPE_LITERAL           = 1;
     const SEARCH_TYPE_STRING_COMPLETION = 2;
     const SEARCH_TYPE_WILDCARD          = 3;
+    const SEARCH_TYPE_SOUNDS_LIKE       = 4;
 
     /** @var \Solarium\Client */
     protected $_client;
@@ -536,7 +537,10 @@ class JeroenVermeulen_Solarium_Model_Engine
             } elseif ( $this::SEARCH_TYPE_WILDCARD == $searchType ) {
                 // Stars around every word
                 $escapedQueryString = '*' . preg_replace('|\s+|','* *',$escapedQueryString) . '*';
+            } else if ( $this::SEARCH_TYPE_SOUNDS_LIKE == $searchType ) {
+                $escapedQueryString = $escapedQueryString . '~';
             }
+
             $query->setQueryDefaultField( array( 'text' ) );
             $query->setQuery( $escapedQueryString );
             $query->setRows( $maxResults );

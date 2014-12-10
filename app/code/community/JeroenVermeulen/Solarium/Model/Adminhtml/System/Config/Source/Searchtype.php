@@ -40,6 +40,8 @@ class JeroenVermeulen_Solarium_Model_Adminhtml_System_Config_Source_Searchtype
                    'label' => Mage::helper( 'jeroenvermeulen_solarium' )->__( 'String Completion (starts with)' ) ),
             array( 'value' => JeroenVermeulen_Solarium_Model_Engine::SEARCH_TYPE_WILDCARD,
                    'label' => Mage::helper( 'jeroenvermeulen_solarium' )->__( 'Wildcard (contains string)' ) ),
+            array( 'value' => JeroenVermeulen_Solarium_Model_Engine::SEARCH_TYPE_SOUNDS_LIKE,
+                   'label' => Mage::helper( 'jeroenvermeulen_solarium' )->__( 'Sounds like' ) ),
         );
     }
 
