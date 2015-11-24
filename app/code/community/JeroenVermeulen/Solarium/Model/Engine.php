@@ -343,18 +343,48 @@ class JeroenVermeulen_Solarium_Model_Engine
         Varien_Profiler::start('solarium_cleanIndex');
         $result = false;
         try {
-            $query = $this->_client->createUpdate();
-            $query->addDeleteQuery( $this->_getDeleteQueryText( $storeId, $productIds ) );
-            //$query->addCommit();
-
-            $solariumResult = $this->_client->update( $query, 'update' );
-            $result         = $this->processResult( $solariumResult, 'clean' );
+            $this->deleteFromIndex($storeId, $productIds, true);
         } catch ( Exception $e ) {
             $this->_lastError = $e;
             Mage::log( sprintf( '%s->%s: %s', __CLASS__, __FUNCTION__, $e->getMessage() ), Zend_Log::ERR );
         }
         Varien_Profiler::stop('solarium_cleanIndex');
         return $result;
+    }
+
+    /**
+     * Removes products from solr, splits product id array into chunks to avoid "Cannot parse ... too many boolean clauses"
+     * @param $storeId
+     * @param $productIds
+     * @param bool|false $cleanResults
+     */
+    protected function deleteFromIndex($storeId, $productIds, $cleanResults=false) {
+        if (empty($productIds)) {
+            $this->runDeleteQuery($storeId, $productIds, $cleanResults);
+            return;
+        }
+        $count = ceil(count($productIds)/1000);
+
+        for ($i=0; $i < $count; $i++) {
+            $productIdsChunk = array_slice($productIds, $i, 1000);
+            $this->runDeleteQuery($storeId, $productIdsChunk, $cleanResults);
+        }
+    }
+
+    /**
+     * Run delete update query to solr for given product ids
+     *
+     * @param $storeId
+     * @param $productIdsChunk
+     * @param bool|false $cleanResults
+     */
+    protected function runDeleteQuery($storeId, $productIdsChunk, $cleanResults=false) {
+        $query = $this->_client->createUpdate();
+        $query->addDeleteQuery( $this->_getDeleteQueryText( $storeId, $productIdsChunk ) );
+        $solariumResult = $this->_client->update( $query, 'update' );
+        if ($cleanResults) {
+            $this->processResult( $solariumResult, 'clean' );
+        }
     }
 
     /**
@@ -407,10 +437,7 @@ class JeroenVermeulen_Solarium_Model_Engine
                 $result = true;
             } else {
                 if ($cleanFirst) {
-                    $deleteQuery = $this->_client->createUpdate();
-                    $deleteQuery->addDeleteQuery( $this->_getDeleteQueryText( $storeId, $productIds ) );
-                    // No commit yet, will be done after BufferedAdd
-                    $this->_client->update( $deleteQuery );
+                    $this->deleteFromIndex($storeId, $productIds, false);
                 }
                 /** @var Solarium\Plugin\BufferedAdd\BufferedAdd $buffer */
                 $buffer = $this->_client->getPlugin( 'bufferedadd' );
