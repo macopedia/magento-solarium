@@ -112,7 +112,11 @@ class JeroenVermeulen_Solarium_Model_SelfTest
                     'store_id'   => $this::TEST_STOREID,
                     'text'       => $testProductText
                 );
-                $buffer->createDocument( $data );
+                $data = (object) $data;
+                Mage::dispatchEvent('solr_test_add_custom_data', array(
+                    'test_data'      => array('data' => $data)
+                ));
+                $buffer->createDocument( (array) $data );
                 $solariumResult = $buffer->commit();
                 $engine->optimize(); // ignore result
                 $insertOk = $engine->processResult( $solariumResult, 'flushing buffered add' );
@@ -172,14 +176,22 @@ class JeroenVermeulen_Solarium_Model_SelfTest
                     'store_id'   => $this::TEST_STOREID,
                     'text'       => $testProductText2
                 );
-                $buffer->createDocument( $data );
+                $data = (object) $data;
+                Mage::dispatchEvent('solr_test_add_custom_data', array(
+                    'test_data'      => array('data' => $data)
+                ));
+                $buffer->createDocument( (array) $data );
                 $data = array(
                     'id'         => 'test3' . $testProductId,
                     'product_id' => $testProductId3,
                     'store_id'   => $this::TEST_STOREID,
                     'text'       => $testProductText3
                 );
-                $buffer->createDocument( $data );
+                $data = (object) $data;
+                Mage::dispatchEvent('solr_test_add_custom_data', array(
+                    'test_data'      => array('data' => $data)
+                ));
+                $buffer->createDocument( (array) $data );
                 $buffer->commit();
                 $engine->optimize(); // ignore result
                 $searchResult = $engine->search( $this::TEST_STOREID, $didYouMeanTest, $engine::SEARCH_TYPE_LITERAL, true );

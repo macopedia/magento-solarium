@@ -425,7 +425,12 @@ class JeroenVermeulen_Solarium_Model_Engine
                         'store_id'   => intval( $product[ 'store_id' ] ),
                         'text'       => $text
                     );
-                    $buffer->createDocument( $data );
+                    
+                    $data = (object) $data;
+                    Mage::dispatchEvent('solr_reindex_add_custom_data', array(
+                        'index_data'     => array('data' => $data)
+                    ));
+                    $buffer->createDocument( (array) $data );
                 }
                 $solariumResult = $buffer->commit();
                 $this->optimize(); // ignore result
@@ -568,6 +573,11 @@ class JeroenVermeulen_Solarium_Model_Engine
             }
 
             $query->setTimeAllowed( 1000 * intval( $this->getConf( 'server/search_timeout', $storeId ) ) );
+
+            Mage::dispatchEvent('solr_modify_search_query', array(
+                'search_query'      => array('query' => $query)
+            ));
+
             $solrResultSet = $this->_client->select( $query );
             $this->debugQuery( $query );
 
